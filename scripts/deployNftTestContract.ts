@@ -1,11 +1,17 @@
-import { toNano } from '@ton/core';
+import { Address, toNano } from '@ton/core';
 import { NftTestContract } from '../wrappers/NftTestContract';
 import { NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    const nftTestContract = provider.open(await NftTestContract.fromInit());
+    let deployer: Address = Address.parse("0QC6V3GlAlOwW2_giOe1zTuJsJ_m4MvbY_Rrjnowc8qBPqzj");
+    const collectionContent: string = " Testing Nft Mine";
+    const ownerAddress: Address = deployer;
 
-    await nftTestContract.send(
+
+
+    const mineMintNftContract = provider.open(await NftTestContract.fromInit(ownerAddress, collectionContent));
+
+    await mineMintNftContract.send(
         provider.sender(),
         {
             value: toNano('0.05'),
@@ -14,9 +20,18 @@ export async function run(provider: NetworkProvider) {
             $$type: 'Deploy',
             queryId: 0n,
         }
-    );
+    );  
 
-    await provider.waitForDeploy(nftTestContract.address);
+    await provider.waitForDeploy(mineMintNftContract.address);
+    console.log("Nft Parent Contract Adrress: ", mineMintNftContract.address)
 
-    // run methods on `nftTestContract`
+    // run methods on `mineMintNftContract`
+    // MINT INTERRACTION
+   await mineMintNftContract.send(
+        provider.sender(),
+        {
+            value: toNano("0.3")
+        },
+        "Mint"
+    )
 }
