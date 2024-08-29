@@ -9,9 +9,9 @@ export async function run(provider: NetworkProvider) {
 
 
 
-    const mineMintNftContract = provider.open(await NftTestContract.fromInit(ownerAddress, collectionContent));
+    const nftTestContract = provider.open(await NftTestContract.fromInit(ownerAddress, collectionContent));
 
-    await mineMintNftContract.send(
+   /* await nftTestContract.send(
         provider.sender(),
         {
             value: toNano('0.05'),
@@ -20,14 +20,14 @@ export async function run(provider: NetworkProvider) {
             $$type: 'Deploy',
             queryId: 0n,
         }
-    );  
+    );  */
 
-    await provider.waitForDeploy(mineMintNftContract.address);
-    console.log("Nft Parent Contract Adrress: ", mineMintNftContract.address)
+    await provider.waitForDeploy(nftTestContract.address);
+    console.log("Nft Parent Contract Adrress: ", nftTestContract.address)
 
     // run methods on `mineMintNftContract`
     // MINT INTERRACTION
-   await mineMintNftContract.send(
+   await nftTestContract.send(
         provider.sender(),
         {
             value: toNano("0.3")
