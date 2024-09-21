@@ -8,7 +8,6 @@ contract NftCollection with Deployable, Ownable {
     next_item_index: Int as uint32 = 0;
     collection_content: String; // IPFS hash for collection metadata
     royalty_params: RoyaltyParams?;
-    individual_content: String; // IPFS for NftItem Content
 
 
     const minting_fee: Int = ton("0.2"); // Minting fee set to 0.2 TON
@@ -18,13 +17,11 @@ contract NftCollection with Deployable, Ownable {
     init(
         owner: Address,
         collection_content: String,
-        individual_content: String,
-        royalty_params: RoyaltyParams,
+        royalty_params: RoyaltyParams
     ) {
         self.owner = owner;
         self.collection_content = collection_content;
         self.royalty_params = royalty_params;
-        self.individual_content = individual_content;
     }
 
     receive("Mint") {
@@ -86,7 +83,7 @@ contract NftCollection with Deployable, Ownable {
     }
 
     get fun getNftItemInit(item_index: Int): StateInit {
-        return initOf NftItem(self.owner, myAddress(), item_index, self.individual_content);
+        return initOf NftItem(self.owner, myAddress(), item_index, self.collection_content);
     }
 
     get fun get_nft_address_by_index(item_index: Int): Address {
@@ -99,6 +96,7 @@ contract NftCollection with Deployable, Ownable {
             next_item_index: self.next_item_index,
             collection_content: self.collection_content.asSlice().asCell(),
             owner_address: self.owner
+            
         };
     }
 
