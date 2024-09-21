@@ -61,7 +61,7 @@ contract NftItem with Deployable, Ownable {
         }
     }
 
-    get fun get_nft_item_data(): ItemData {
+    get fun get_Item_Data(): ItemData {
         return ItemData{
             owner: self.owner,
             collection_address: self.collection_address,

@@ -82,5 +82,5 @@ struct CollectionMetadata {
    image: String;   //"https://ton.org/_next/static/media/smart-challenge1.7210ca54.png",
    name:  String;   //"TON Smart Challenge #2",
    description: String;   //"TON Smart Challenge #2 Winners Trophy",
-   socialLinks: String[] ;
+   socialLinks: String;
 }

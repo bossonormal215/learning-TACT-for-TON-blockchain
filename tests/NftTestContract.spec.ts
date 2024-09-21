@@ -9,6 +9,7 @@ describe('NftTestContract', () => {
     let deployer: SandboxContract<TreasuryContract>;
     let nftTestContract: SandboxContract<NftTestContract>;
     const collectionContent: string = ' Testing Nft On TON';
+    const individual_content: string = ' Nft Item Content';
 
     beforeEach(async () => {
         blockchain = await Blockchain.create();
@@ -86,12 +87,14 @@ describe('NftTestContract', () => {
         const nftItemAddress = await nftTestContract.getGetNftAddressByIndex(1n);
         const nftItem: SandboxContract<NftItem> = blockchain.openContract(NftItem.fromAddress(nftItemAddress!));
         console.log('Nft Item Address: ', nftItemAddress);
-        console.log(await nftTestContract.getGetCollectionData());
-        console.log(nftItem);
-        // let nftItemData = (await nftItem.getGetItemData());
-        // console.log("NftItem Old Owner: ", nftItemData.owner);
-        //const individualContent = (await nftItem.getGetItemData()).individual_content.beginParse().loadStringTail();
-        //console.log("Individual Content: ",individualContent);
+        // console.log('Collection Data ', await nftTestContract.getGetCollectionData());
+        // console.log(nftItem);
+
+        // let nftItemData = await nftItem.getGetItemData();
+        // console.log('NftItem Old Owner: ', nftItemData.owner);
+        // const individualContent = (await nftItem.getGetItemData()).individual_content.beginParse().loadStringTail();
+        // console.log('Individual Content: ', individualContent);
+
         let ParentContractBalance;
         ParentContractBalance = await nftTestContract.getGetMyBalance();
         console.log('Parent Contract Balance After Mint: ', fromNano(ParentContractBalance));
@@ -183,5 +186,5 @@ describe('NftTestContract', () => {
 });
 
 // git add .
-// git commit -m "first commit"
+// git commit -m "getting it c commit"
 // git push -u origin main
