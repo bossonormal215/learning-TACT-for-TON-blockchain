@@ -11,7 +11,7 @@ export async function run(provider: NetworkProvider) {
 
     const nftTestContract = provider.open(await NftTestContract.fromInit(ownerAddress, collectionContent));
 
-   /* await nftTestContract.send(
+  /* await nftTestContract.send(
         provider.sender(),
         {
             value: toNano('0.05'),
@@ -27,11 +27,22 @@ export async function run(provider: NetworkProvider) {
 
     // run methods on `mineMintNftContract`
     // MINT INTERRACTION
-   await nftTestContract.send(
+    await nftTestContract.send(
         provider.sender(),
         {
             value: toNano("0.3")
         },
         "Mint"
     )
+
+
+
+    // Withdraw Interraction
+    await nftTestContract.send(
+        provider.sender(),
+        {
+            value: toNano('0.05'),  // This value should cover any additional gas fees for the transaction.
+        },
+        "Withdraw"
+    ) 
 }

@@ -1,11 +1,18 @@
 
-struct GetNftData {
+       struct GetNftData {
             is_initialized: Bool;
             index: Int;
             collection_address: Address; 
             owner_address: Address;
             // individual_content: b.toCell()
             individual_content: Cell;
+          }
+
+
+        message LogEventMintRecord {
+             minter: Address;
+             item_id: Int;
+             generate_number: Int;
         }
 
 
@@ -15,16 +22,16 @@ message(0x5fcc3d14) Transfer {
 // message Transfer { 
     query_id: Int as uint64;            
     new_owner: Address; 
-    // response_destination: Address; 
-    // custom_payload: Cell?; 
-    // forward_amount: Int as coins; 
-    // forward_payload: Slice as remaining; 
+    response_destination: Address; 
+    custom_payload: Cell; 
+    forward_amount: Int as coins; 
+    forward_payload: Slice as remaining; 
 }
 
- message Transfer1 { 
+ message(0x5fcc3d14) Transfer1 { 
     query_id: Int as uint64;            
     new_owner: Address; 
-    response_destination: Address; 
+    response_destination: Address?; 
     custom_payload: Cell?; 
     forward_amount: Int as coins; 
     forward_payload: Slice as remaining; 
@@ -75,5 +82,5 @@ struct CollectionMetadata {
    image: String;   //"https://ton.org/_next/static/media/smart-challenge1.7210ca54.png",
    name:  String;   //"TON Smart Challenge #2",
    description: String;   //"TON Smart Challenge #2 Winners Trophy",
-   socialLinks: Cell ;
+   socialLinks: String[] ;
 }

@@ -3,66 +3,59 @@ import "@stdlib/ownable";
 import "./messages.tact";
 import "./nft_item.tact";
 
-contract NftTestContract with Deployable, Ownable {
+contract NftCollection with Deployable, Ownable {
     owner: Address;
     next_item_index: Int as uint32 = 0;
-    collection_content: String;
-    // mint_price: Int;
-    // mint_price: Int = ton("0.12");
+    collection_content: String; // IPFS hash for collection metadata
+    royalty_params: RoyaltyParams?;
 
-    const minTonForStorage: Int = ton("0.03");
-    const gasConsumption: Int = ton("0.03");
 
-    // mintedItems: map<Address, Int>;
-   
+    const minting_fee: Int = ton("0.2"); // Minting fee set to 0.2 TON
+    const minTonForStorage: Int = ton("0.02");
+    const gasConsumption: Int = ton("0.02");
+
     init(
         owner: Address,
         collection_content: String,
-        // mint_price: Int
+        royalty_params: RoyaltyParams
     ) {
         self.owner = owner;
         self.collection_content = collection_content;
-        // self.mint_price = mint_price;
+        self.royalty_params = royalty_params;
     }
 
     receive("Mint") {
         let ctx: Context = context();
         let receiver: Address = ctx.sender;
-        // self.requireOwner();
-        // self.mint(receiver); // COMING BACK HERE
-         // Set a required minting fee, for example, 0.2 TON
-        let requiredMintFee: Int = ton("0.2");
-        require(ctx.value >= requiredMintFee, "Insufficient minting fee");
-        ///
-        // Check how many NFTs this address has minted
-        // let mintedCount: Int = self.mintedItems[receiver] ?? 0;
 
-        // Set a limit, for example, 5 NFTs per address
-        // let mintLimit: Int = 10;
-        // require(mintedCount < mintLimit, "Minting limit reached");
+        require(ctx.value >= self.minting_fee, "Insufficient minting fee");
 
         self.mint(receiver);
-         // Increment the minted count
-        // self.mintedItems[receiver] = mintedCount + 1;
+        emit(LogEventMintRecord{minter: receiver, item_id: self.next_item_index, generate_number: nativeRandom() }.toCell());
     }
 
     fun mint(receiver: Address) {
-        require(self.next_item_index >= 0, "Non-Sequence NFTs");
+        require(self.next_item_index >= 0, "Invalid item index");
+
         let nft_init: StateInit = self.getNftItemInit(self.next_item_index);
         let ctx: Context = context();
-        ///////-------------starting the calculation------------------/////////////////
-        let msgValue: Int = context().value;
-        let tonBalanceBeforeMsg: Int = myBalance() - msgValue;
-        let storageFee: Int = self.minTonForStorage - min(tonBalanceBeforeMsg, self.minTonForStorage);
-        msgValue = msgValue - (storageFee + self.gasConsumption);
+        let msgValue: Int = ctx.value;
+        let tonBalanceBeforeMessage: Int = myBalance() - msgValue;
+        let storageFee: Int = self.minTonForStorage - min(tonBalanceBeforeMessage, self.minTonForStorage);
+        msgValue = msgValue - (storageFee + self.gasConsumption + self.minting_fee);
 
-        send(SendParameters {
+        send(SendParameters{
             to: contractAddress(nft_init),
-            value: msgValue,  ///////////// everything that was sent to mint function will be sent to the NFTItem
+            value: msgValue,
+            bounce: false,
             mode: SendIgnoreErrors,
             body: Transfer{
                 query_id: 0,
-                new_owner: receiver
+                new_owner: receiver,
+                response_destination: myAddress(), // add to CA
+                custom_payload: self.collection_content.asSlice().asCell(), // Collection metadata from IPFS
+                forward_amount: 0,
+                forward_payload: emptySlice()
             }.toCell(),
             code: nft_init.code,
             data: nft_init.data
@@ -71,12 +64,26 @@ contract NftTestContract with Deployable, Ownable {
         self.next_item_index = self.next_item_index + 1;
     }
 
+    receive("Withdraw") {
+        let ctx: Context = context();
+        self.requireOwner();
+        require(ctx.sender == self.owner, "Not Owner");
+
+        let balance: Int = myBalance();
+        require(balance > ton("0.01"), "No funds to withdraw");
+
+        let amountToWithdraw: Int = balance - ton("0.05");
+
+        send(SendParameters{
+            to: self.owner,
+            value: amountToWithdraw,
+            mode: 0,
+            bounce: false
+        });
+    }
+
     get fun getNftItemInit(item_index: Int): StateInit {
-        let b: StringBuilder = beginString();
-        b.append("Item # -");
-        b.append(item_index.toString());
-       let  is_initialized = true;
-        return initOf NftItem(self.owner, myAddress(), item_index, b.toString(), is_initialized)
+        return initOf NftItem(self.owner, myAddress(), item_index, self.collection_content);
     }
 
     get fun get_nft_address_by_index(item_index: Int): Address {
@@ -84,12 +91,12 @@ contract NftTestContract with Deployable, Ownable {
         return contractAddress(initCode);
     }
 
-    get fun get_Collection_Data(): CollectionData{
+    get fun get_Collection_Data(): CollectionData {
         return CollectionData{
             next_item_index: self.next_item_index,
             collection_content: self.collection_content.asSlice().asCell(),
             owner_address: self.owner
-        }
+        };
     }
 
     get fun getMyBalance(): Int {
@@ -99,6 +106,4 @@ contract NftTestContract with Deployable, Ownable {
     get fun getNext_item_index(): Int {
         return self.next_item_index;
     }
-
-
 }
